@@ -6,6 +6,9 @@
  */
 namespace Magento\Backend\Controller\Adminhtml\Auth;
 
+use Maestrano;
+use Maestrano_Sso_Session;
+
 class Login extends \Magento\Backend\Controller\Adminhtml\Auth
 {
     /**
@@ -34,6 +37,17 @@ class Login extends \Magento\Backend\Controller\Adminhtml\Auth
      */
     public function execute()
     {
+        // Maestrano Hook
+        Maestrano::configure('maestrano.json');
+        if(Maestrano::sso()->isSsoEnabled()) {
+            $mnoSession = new Maestrano_Sso_Session($_SESSION);
+            // Check session validity and trigger SSO if not
+            if (!$mnoSession->isValid()) {
+                header('Location: ' . Maestrano::sso()->getInitPath());
+                exit;
+            }
+        }
+
         if ($this->_auth->isLoggedIn()) {
             if ($this->_auth->getAuthStorage()->isFirstPageAfterLogin()) {
                 $this->_auth->getAuthStorage()->setIsFirstPageAfterLogin(true);
